@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gaji Borongan</title>
+    <style>
+        :root {
+            --bg-color: #0f172a; --card-bg: #1e293b; --primary: #10b981; --primary-hover: #059669;
+            --text-main: #f8fafc; --text-muted: #94a3b8; --danger: #ef4444; --warning: #f59e0b;
+            --border: #334155; --nav-bg: #1e293b;
+        }
+
+        body.light-mode {
+            --bg-color: #f1f5f9; --card-bg: #ffffff; --text-main: #0f172a;
+            --text-muted: #64748b; --border: #e2e8f0; --nav-bg: #ffffff;
+        }
+
+        body.lembur-mode { --bg-color: #2a0f0f; --card-bg: #3b1e1e; --border: #553333; }
+        body.lembur-mode.light-mode { --bg-color: #fff1f1; --card-bg: #ffffff; --border: #fca5a5; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 70px; transition: background 0.3s, color 0.3s; }
+        
+        h1, h2, h3, h4 { font-weight: 600; margin-bottom: 10px; }
+        .text-primary { color: var(--primary); } .text-warning { color: var(--warning); } .text-danger { color: var(--danger); }
+        .text-muted { color: var(--text-muted); font-size: 0.9em; } .text-right { text-align: right; } .text-center { text-align: center; }
+        .mt-1 { margin-top: 10px; } .mt-2 { margin-top: 20px; } .mb-1 { margin-bottom: 10px; } .mb-2 { margin-bottom: 20px; }
+        
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+        .view-section { display: none; animation: fadeIn 0.3s ease; } .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background-color: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: background 0.3s, border-color 0.3s; }
+        .card-header { font-size: 0.85em; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .card-value { font-size: 1.5em; font-weight: bold; color: var(--primary); } .card-value.large { font-size: 2em; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .form-group { margin-bottom: 15px; } label { display: block; margin-bottom: 5px; font-size: 0.9em; color: var(--text-muted); font-weight:500;}
+        input[type="text"], input[type="number"], input[type="date"], select {
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+            background-color: var(--bg-color); color: var(--text-main); font-size: 1em; transition: 0.3s;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--primary); }
+        .search-input { padding-left: 35px !important; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%2394a3b8" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>') no-repeat 12px center var(--bg-color); }
+
+        .btn { display: inline-block; width: 100%; padding: 12px; border-radius: 8px; border: none; font-size: 1em; font-weight: bold; cursor: pointer; text-align: center; transition: 0.2s; }
+        .btn-primary { background-color: var(--primary); color: #fff; } .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-danger { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+        .btn-warning { background-color: var(--warning); color: #fff; } .btn-secondary { background-color: var(--border); color: var(--text-main); }
+        .btn-outline { background-color: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background-color: rgba(16, 185, 129, 0.1); }
+        .btn-sm { padding: 8px 10px; font-size: 0.85em; width: auto; }
+        
+        .tabs { display: flex; gap: 8px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px 5px; text-align: center; border-radius: 8px; background: var(--border); color: var(--text-muted); font-size: 0.85em; font-weight: bold; cursor: pointer; transition: 0.2s; border: none; }
+        .tab-btn.active { background: var(--primary); color: #fff; } .tab-btn.active-danger { background: var(--danger); color: #fff; } .tab-btn.active-warning { background: var(--warning); color: #fff; }
+
+        .table-responsive { overflow-x: auto; margin-top: 10px; } table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size:0.9em; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; } th { color: var(--text-muted); font-weight: 600; font-size: 0.85em; text-transform: uppercase; }
+        
+        .chart-wrapper { display: flex; align-items: flex-end; gap: 8px; height: 160px; margin-top: 15px; padding-bottom: 5px; overflow-x: auto; border-bottom: 1px solid var(--border); }
+        .chart-bar-container { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; min-width: 40px; height: 100%; }
+        .chart-bar { width: 100%; background: var(--primary); border-radius: 4px 4px 0 0; min-height: 2px; position: relative; transition: height 0.5s; }
+        .chart-bar:hover::after { content: attr(data-val); position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: var(--text-main); color: var(--bg-color); padding: 2px 6px; border-radius: 4px; font-size: 0.7em; font-weight: bold; white-space: nowrap; }
+        .chart-label { font-size: 0.7em; color: var(--text-muted); margin-top: 5px; }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px; }
+        .cal-day { padding: 10px 0; text-align: center; border-radius: 8px; font-size: 0.9em; font-weight: bold; background: var(--border); color: var(--text-muted); position: relative; transition: 0.2s; }
+        .cal-day.worked { background: var(--primary); color: #fff; box-shadow: 0 2px 4px rgba(16,185,129,0.3); } .cal-day.kasbon-only { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); } .cal-day.future { background: transparent; border: 1px dashed var(--border); opacity: 0.5; font-weight: normal; }
+        .cal-day .dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 2px rgba(0,0,0,0.5); }
+        .cal-legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.75em; color: var(--text-muted); margin-top: 15px; justify-content: center; } .cal-legend-item { display: flex; align-items: center; gap: 4px; } .cal-box { width: 12px; height: 12px; border-radius: 3px; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--nav-bg); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid var(--border); z-index: 100; padding-bottom: env(safe-area-inset-bottom, 10px); transition: background 0.3s; }
+        .nav-item { text-align: center; color: var(--text-muted); cursor: pointer; flex: 1; font-size: 0.8em; transition: 0.2s;}
+        .nav-item .icon { font-size: 1.5em; display: block; margin-bottom: 2px; }
+        .nav-item.active { color: var(--primary); font-weight:bold; transform: translateY(-3px); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; } .modal-overlay.active { display: flex; }
+        .modal { background-color: var(--card-bg); padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); }
+        .progress-bg { background-color: var(--border); height: 8px; border-radius: 4px; margin: 10px 0; overflow: hidden; } .progress-bar { background-color: var(--primary); height: 100%; width: 0%; transition: 0.3s; }
+        .history-item { border-left: 4px solid var(--primary); padding-left: 15px; margin-bottom: 15px; transition: 0.3s; }
+        .item-row { position: relative; animation: fadeIn 0.3s ease; }
+        .btn-remove-item { position: absolute; top: 8px; right: 8px; background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.8em; font-weight: bold; cursor: pointer; }
+
+        @media print { body * { visibility: hidden; } body { background: white; color: black; padding: 0; } #print-area, #print-area * { visibility: visible; } #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; } .bottom-nav { display: none; } }
+
+        /* CONFETTI */
+        .confetti { position: fixed; z-index: 9999; pointer-events: none; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(120vh) rotate(720deg); } }
+
+        /* XP BADGE */
+        .badge-xp { display:inline-block; font-size:0.7em; padding:3px 8px; border-radius:12px; background:var(--border); color:var(--text-main); font-weight:bold; margin-top:5px; }
+        .xp-bar-container { height: 6px; width: 100%; background: var(--border); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+        .xp-bar { height: 100%; background: linear-gradient(90deg, var(--warning), var(--primary)); width: 0%; transition: 1s ease-out; }
+    </style>
+</head>
+<body id="app-body">
+    <!-- AUTO-FILL DATALIST -->
+    <datalist id="karung-list"></datalist>
+
+    <!-- HOME VIEW -->
+    <div id="view-home" class="view-section active container">
+        <div class="flex-between">
+            <div>
+                <h2 style="margin-bottom:2px;">Halo <span id="display-name"></span></h2>
+                <div id="pangkat-badge" class="badge-xp">Kuli Amatir 🥉 (0 Karung)</div>
+                <div class="xp-bar-container"><div class="xp-bar" id="xp-bar"></div></div>
+            </div>
+            <div id="theme-toggle" style="cursor:pointer; font-size:1.5em; margin-left:10px;" onclick="toggleTheme()">🌙</div>
+        </div>
+        
+        <div class="flex-between mt-2 mb-2">
+            <p class="text-muted" style="margin:0;">Periode: <span id="home-periode" class="text-primary"></span></p>
+            <button id="btn-lembur" onclick="toggleLembur()" style="background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:20px; padding:4px 10px; font-weight:bold; font-size:0.8em; cursor:pointer;">🔥 Mode Lembur</button>
+        </div>
+
+        <div class="card" id="card-utama" style="border-left: 5px solid var(--primary);">
+            <div class="card-header">Gaji Bersih (Diterima)</div>
+            <div class="card-value large" id="home-bersih">Rp0</div>
+            
+            <div class="flex-between mt-1 text-muted" style="font-size: 0.9em; padding-top: 10px; border-top: 1px dashed var(--border);">
+                <div>Kotor: <strong class="text-main" id="home-kotor">Rp0</strong></div>
+                <div class="text-danger">Kasbon: <strong id="home-kasbon">Rp0</strong></div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-header">Hasil Hari Ini</div>
+                <div class="card-value" id="home-hari-uang" style="font-size: 1.2em;">Rp0</div>
+            </div>
+            <div class="card">
+                <div class="card-header">Karung Hari Ini</div>
+                <div class="card-value" id="home-hari-karung" style="font-size: 1.2em; color: var(--text-main);">0</div>
+            </div>
+        </div>
+
+        <button class="btn btn-outline mb-2" onclick="shareWAHariIni()" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+            Bagikan Laporan Hari Ini ke WA
+        </button>
+
+        <div class="card" id="reward-card" style="background: rgba(16, 185, 129, 0.05); border-color: var(--primary); display:none;">
+            <div class="flex-between" style="font-size:0.9em;">
+                <span class="text-muted">Setara dengan:</span><strong class="text-primary" id="reward-text">0x Ayam DKRIUK</strong>
+            </div>
+        </div>
+
+        <div class="card" style="border-color: var(--border);">
+            <div class="card-header flex-between"><span>Target Bersih</span><span id="target-progress-text">0%</span></div>
+            <div class="progress-bg"><div class="progress-bar" id="target-progress-bar"></div></div>
+            <div class="text-muted flex-between" style="font-size:0.85em;"><span id="target-status">Masih kurang Rp0</span><span id="target-amount-text">Rp0</span></div>
+            <div id="target-pacer-text" class="text-warning mt-1" style="font-size:0.85em; text-align:center; display:none; background:rgba(245, 158, 11, 0.1); padding:10px; border-radius:8px;"></div>
+        </div>
+
+        <div class="card" style="border-color: rgba(245, 158, 11, 0.4); background: linear-gradient(145deg, var(--card-bg) 70%, rgba(245,158,11,0.05) 100%);">
+            <div class="card-header flex-between text-warning"><span>💡 Prediksi Kinerja</span></div>
+            <div class="mt-1" style="font-size: 0.9em;">
+                <div class="flex-between mb-1"><span class="text-muted">Rata-rata Harian:</span><strong id="home-rata-harian">Rp0</strong></div>
+                <div class="flex-between mb-1" style="padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+                    <span class="text-muted">Estimasi Akhir Bulan:</span><strong class="text-primary" style="font-size: 1.2em;" id="home-estimasi">Rp0</strong>
+                </div>
+                <div id="trend-indicator" style="text-align: center; border-bottom:1px dashed var(--border); padding-bottom:8px; margin-bottom:8px;"></div>
+                <p id="home-insight-msg" class="mt-1" style="font-style: italic; font-weight: 500; font-size:0.9em; text-align:center;"></p>
+            </div>
+        </div>
+
+        <div class="card" id="card-simulasi-alokasi" style="display:none; border-color: var(--primary);">
+            <div class="card-header text-primary">📊 Simulasi Alokasi Saat Ini</div>
+            <div id="simulasi-alokasi-list" class="mt-1" style="font-size: 0.95em;"></div>
+            <p class="mt-2 text-primary text-center" id="simulasi-alokasi-pesan" style="font-size: 0.85em; font-style:italic; padding: 8px; background: rgba(16, 185, 129, 0.1); border-radius: 8px;"></p>
+        </div>
+
+        <div id="saran-alokasi-container" style="display:none;">
+            <div class="card" style="border: 1px dashed var(--border);">
+                <div class="card-header text-muted">Saran Alokasi Bulan Lalu (History)</div>
+                <div id="saran-alokasi-list" class="mt-1 text-muted"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CATAT VIEW -->
+    <div id="view-catat" class="view-section container">
+        <h2>Catat Aktivitas</h2>
+        
+        <div class="tabs">
+            <button class="tab-btn active" id="tab-hasil" onclick="switchCatatTab('hasil')">Karung</button>
+            <button class="tab-btn" id="tab-kasbon" onclick="switchCatatTab('kasbon')">Kasbon</button>
+            <button class="tab-btn" id="tab-simulasi" onclick="switchCatatTab('simulasi')">Kalkulator</button>
+        </div>
+
+        <div class="card" id="form-container-hasil">
+            <div class="flex-between mb-2">
+                <input type="date" id="catat-tanggal" style="width: 48%;" required>
+                <button type="button" class="btn btn-outline btn-sm" onclick="salinKemarin()" style="width: 48%;">📋 Salin Kemarin</button>
+            </div>
+            
+            <form id="form-catat">
+                <div id="catat-items"></div>
+                <button type="button" class="btn btn-outline btn-sm mb-2" style="width:100%" onclick="addCatatItem('catat-items', 'autoHitungCatat')">+ Tambah Karung Lain</button>
+                <div class="form-group"><label>Catatan (Opsional)</label><input type="text" id="catat-catatan" placeholder="Contoh: Lembur malam"></div>
+                <div class="flex-between mb-1 mt-2" style="padding:10px; background:var(--bg-color); border-radius:8px;">
+                    <span class="text-muted">Total Dihasilkan</span><strong class="text-primary" style="font-size:1.2em;" id="catat-hasil-otomatis">Rp0</strong>
+                </div>
+                <button type="submit" class="btn btn-primary">➕ Simpan Hasil</button>
+            </form>
+        </div>
+
+        <div class="card" id="form-container-kasbon" style="display:none; border-color:var(--danger);">
+            <form id="form-kasbon">
+                <div class="form-group"><label>Tanggal Kasbon</label><input type="date" id="kasbon-tanggal" required></div>
+                <div class="form-group"><label>Jumlah Uang (Rp)</label><input type="number" id="kasbon-jumlah" placeholder="Contoh: 50000" min="1" required></div>
+                <div class="form-group"><label>Keterangan / Keperluan</label><input type="text" id="kasbon-catatan" placeholder="Contoh: Makan siang" required></div>
+                <button type="submit" class="btn btn-primary" style="background-color:var(--danger);">➖ Simpan Kasbon</button>
+            </form>
+        </div>
+
+        <div class="card" id="form-container-simulasi" style="display:none; border-color:var(--warning);">
+            <div class="card-header text-warning" style="margin-bottom:10px;">Kalkulator Simulasi (Tidak Disimpan)</div>
+            <p class="text-muted mb-2" style="font-size:0.85em;">Coret-coret hitungan tanpa merusak data asli.</p>
+            <div id="simulasi-items"></div>
+            <button type="button" class="btn btn-outline btn-sm mb-2" style="width:100%; border-color:var(--warning); color:var(--warning);" onclick="addCatatItem('simulasi-items', 'autoHitungSimulasi')">+ Tambah Karung</button>
+            <div class="flex-between mb-1 mt-2" style="padding:10px; background:var(--bg-color); border-radius:8px;">
+                <span class="text-muted">Estimasi Hasil</span><strong class="text-warning" style="font-size:1.2em;" id="simulasi-hasil-otomatis">Rp0</strong>
+            </div>
+            <button type="button" class="btn btn-secondary mt-1" onclick="resetSimulasi()">Reset Kalkulator</button>
+        </div>
+
+        <h3 class="mt-2" id="judul-transaksi-berjalan">Transaksi Periode Ini</h3>
+        <div class="card table-responsive" id="tabel-transaksi-berjalan">
+            <table id="table-transaksi">
+                <thead><tr><th>Tgl</th><th>Keterangan</th><th>Jumlah</th><th>Aksi</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- HASIL VIEW (FIXED) -->
+    <div id="view-hasil" class="view-section container">
+        <h2>Statistik & Grafik</h2>
+        <p class="text-muted mb-2" id="hasil-periode"></p>
+        
+        <div class="grid-2 mb-2">
+            <div class="card" style="border-color:var(--primary); margin-bottom:0;">
+                <div class="card-header text-primary">Penghasil Uang Tertinggi</div>
+                <div id="top-uang-nama" style="font-weight:bold; font-size:1.1em;">-</div>
+                <div class="text-muted" style="font-size:0.85em;" id="top-uang-nilai">Rp0</div>
+            </div>
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-header">Paling Sering Dikerjakan</div>
+                <div id="top-karung-nama" style="font-weight:bold; font-size:1.1em; color:var(--text-main);">-</div>
+                <div class="text-muted" style="font-size:0.85em;" id="top-karung-nilai">0 Pcs</div>
+            </div>
+        </div>
+
+        <div class="card" style="border-color: var(--primary);">
+            <div class="card-header text-primary">Kalender Kerja (Streak)</div>
+            <div class="calendar-grid" id="streak-calendar"></div>
+            <div class="cal-legend">
+                <div class="cal-legend-item"><div class="cal-box" style="background:var(--primary);"></div> Masuk</div>
+                <div class="cal-legend-item"><div class="cal-box" style="background:var(--primary); border:1px solid var(--danger);"></div> Masuk+Kasbon</div>
+                <div class="cal-legend-item"><div class="cal-box" style="background:rgba(239, 68, 68, 0.15); border:1px solid var(--danger);"></div> Kasbon Saja</div>
+                <div class="cal-legend-item"><div class="cal-box" style="background:var(--border);"></div> Libur/Bolos</div>
+            </div>
+        </div>
+
+        <div class="card mt-2">
+            <div class="card-header">Grafik Pendapatan Harian</div>
+            <div class="chart-wrapper" id="chart-harian"></div>
+            <div class="text-center text-muted mt-1" style="font-size:0.7em;">Geser grafik ke kiri/kanan jika tanggal panjang</div>
+        </div>
+
+        <h3 class="mt-2">Rekap Transaksi</h3>
+        <div class="card grid-2">
+            <div><div class="card-header">Total Kotor</div><div class="text-main" style="font-weight:bold; font-size:1.1em;" id="hasil-uang">Rp0</div></div>
+            <div><div class="card-header text-danger">Total Kasbon</div><div class="text-danger" style="font-weight:bold; font-size:1.1em;" id="hasil-kasbon">Rp0</div></div>
+            <div class="mt-1" style="grid-column: span 2;">
+                <div class="card-header text-primary">Gaji Bersih Tersisa</div>
+                <div class="text-primary" style="font-weight:bold; font-size:1.5em;" id="hasil-bersih">Rp0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIWAYAT VIEW -->
+    <div id="view-riwayat" class="view-section container">
+        <h2>Riwayat Gaji</h2>
+        <p class="text-muted mb-1">Daftar periode yang sudah ditutup.</p>
+        <input type="text" id="search-riwayat" class="search-input mb-2" placeholder="Cari bulan / tahun..." oninput="filterRiwayat()">
+        <div id="riwayat-list"></div>
+    </div>
+
+    <!-- SETTING VIEW -->
+    <div id="view-setting" class="view-section container">
+        <h2>Pengaturan</h2>
+        <div class="card">
+            <div class="form-group"><label>Nama Pengguna</label><input type="text" id="set-nama" placeholder="Contoh: Abdul"></div>
+            <div class="form-group"><label>Target Gaji Bersih per Periode</label><input type="number" id="set-target" placeholder="Contoh: 5000000" min="0"></div>
+            
+            <div style="border-top: 1px dashed var(--border); padding-top:15px; margin-top:10px;">
+                <label>Item Jajan Favorit (Target Reward)</label>
+                <select id="set-reward-preset" class="mb-1" onchange="applyRewardPreset()">
+                    <option value="Ayam DKRIUK|20000">Ayam DKRIUK (Rp 20.000)</option>
+                    <option value="Langganan CapCut Pro|50000">Langganan CapCut Pro (Rp 50.000)</option>
+                    <option value="Spion Vario Custom|150000">Spion Vario Custom (Rp 150.000)</option>
+                    <option value="Kopi Susu|15000">Kopi Susu (Rp 15.000)</option>
+                    <option value="custom">Ketik Sendiri...</option>
+                </select>
+                <div class="grid-2" id="custom-reward-fields" style="display:none;">
+                    <input type="text" id="set-reward-name" placeholder="Nama Barang">
+                    <input type="number" id="set-reward-price" placeholder="Harga" min="1">
+                </div>
+            </div>
+
+            <div class="form-group flex-between mt-2" style="border-top: 1px solid var(--border); padding-top:15px;">
+                <label style="margin:0;">Tema Tampilan Terang</label>
+                <button class="btn btn-sm btn-outline" id="btn-theme-setting" onclick="toggleTheme()">Ubah ke Terang</button>
+            </div>
+            <button class="btn btn-primary mt-2" onclick="saveSetting()">Simpan Pengaturan</button>
+        </div>
+
+        <div class="card">
+            <h3 class="text-danger">Tutup Buku & Gajian 🎉</h3>
+            <p class="text-muted mb-1">Akhiri periode berjalan dan mulai periode baru kosong.</p>
+            <button class="btn btn-warning" onclick="openTutupBukuModal()">🔒 Tutup Buku Periode Ini</button>
+        </div>
+        <div class="card">
+            <h3>Backup & Restore</h3>
+            <button class="btn btn-secondary mb-1" onclick="backupData()">⬇️ Backup Database (JSON)</button>
+            <input type="file" id="restore-file" accept=".json" style="display:none" onchange="handleRestore(event)">
+            <button class="btn btn-secondary" onclick="document.getElementById('restore-file').click()">⬆️ Restore Database</button>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchView('home', this)"><span class="icon">🏠</span>Home</div>
+        <div class="nav-item" onclick="switchView('catat', this)"><span class="icon">➕</span>Catat</div>
+        <div class="nav-item" onclick="switchView('hasil', this)"><span class="icon">📊</span>Hasil</div>
+        <div class="nav-item" onclick="switchView('riwayat', this)"><span class="icon">🕘</span>Riwayat</div>
+        <div class="nav-item" onclick="switchView('setting', this)"><span class="icon">⚙️</span>Set</div>
+    </div>
+
+    <!-- MODAL EDIT MULTI ITEM -->
+    <div class="modal-overlay" id="modal-edit">
+        <div class="modal">
+            <h3>Edit Transaksi</h3>
+            <form id="form-edit">
+                <input type="hidden" id="edit-id">
+                <div class="form-group mt-1 mb-2"><label>Tanggal</label><input type="date" id="edit-tanggal" required></div>
+                <div id="edit-items"></div>
+                <button type="button" class="btn btn-outline btn-sm mb-2" style="width:100%" onclick="addCatatItem('edit-items', 'autoHitungEdit')">+ Tambah Jenis</button>
+                <div class="form-group"><label>Catatan</label><input type="text" id="edit-catatan"></div>
+                <div class="flex-between mb-1" style="padding-top:10px; border-top:1px dashed var(--border);"><span class="text-muted">Total:</span><span class="text-primary" id="edit-total" style="font-weight:bold; font-size:1.2em;">Rp0</span></div>
+                <div class="grid-2 mt-1"><button type="button" class="btn btn-secondary" onclick="closeModal('modal-edit')">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRM -->
+    <div class="modal-overlay" id="modal-confirm">
+        <div class="modal text-center">
+            <h3 id="confirm-title">Konfirmasi</h3>
+            <p class="text-muted mb-2 mt-1" id="confirm-msg"></p>
+            <div id="confirm-extra" class="mb-2" style="text-align: left; background: var(--bg-color); padding: 10px; border-radius: 8px; display: none;"></div>
+            <div class="grid-2"><button class="btn btn-secondary" onclick="closeModal('modal-confirm')">Batal</button><button class="btn btn-danger" id="confirm-btn">Ya, Lanjutkan</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL RIWAYAT -->
+    <div class="modal-overlay" id="modal-riwayat">
+        <div class="modal">
+            <h3>Detail Lengkap Periode</h3>
+            <p class="text-muted mb-2" id="det-periode"></p>
+            <div class="grid-2 mb-1">
+                <div><div class="text-muted">Gaji Bersih</div><div class="text-primary" style="font-weight:bold; font-size:1.2em;" id="det-gaji"></div></div>
+                <div><div class="text-muted">Total Karung</div><div style="font-weight:bold; font-size:1.2em;" id="det-karung"></div></div>
+            </div>
+            <div class="card" style="border-color: var(--primary); padding: 12px; margin-bottom: 15px;">
+                <div class="text-primary" style="font-size:0.9em; font-weight:bold; margin-bottom:8px;">📊 Histori Saran Alokasi</div>
+                <div id="det-alokasi" style="font-size:0.9em;"></div>
+            </div>
+            <h4 class="mb-1">Rekap per Hari</h4>
+            <div class="table-responsive" style="max-height: 250px;">
+                <table id="table-det-hari" style="font-size:0.85em;">
+                    <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Nominal</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <button class="btn btn-secondary mt-2" onclick="closeModal('modal-riwayat')">Tutup</button>
+        </div>
+    </div>
+
+    <!-- TOAST & PRINT AREA -->
+    <div id="toast" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--primary); color:#fff; padding:10px 20px; border-radius:20px; z-index:9999; box-shadow:0 4px 6px rgba(0,0,0,0.2); font-weight:bold; text-align:center;"></div>
+    <div id="print-area" style="display:none;"></div>
+
+<script>
+    // --- STATE MANAGEMENT ---
+    let appData = { 
+        settings: { nama: 'Pekerja', target: 5000000, theme: 'dark', rewardName: 'Ayam DKRIUK', rewardPrice: 20000 }, 
+        transactions: [], kasbon: [], history: [], knownItems: {} 
+    };
+    let isModeLembur = false;
+
+    function migrateData(data) {
+        if (!data) return data;
+        const migrateTrx = (arr) => {
+            if(!arr) return [];
+            return arr.map(t => {
+                if (t.jenis !== undefined && !t.items) return { id: t.id, tgl: t.tgl, catatan: t.catatan || '', items: [{ jenis: t.jenis, harga: t.harga, jumlah: t.jumlah }], totalKarung: t.jumlah, totalUang: t.total };
+                return t;
+            });
+        };
+        if (data.transactions) data.transactions = migrateTrx(data.transactions);
+        if (!data.kasbon) data.kasbon = [];
+        if (!data.settings.theme) data.settings.theme = 'dark';
+        if (!data.settings.rewardName) { data.settings.rewardName = 'Ayam DKRIUK'; data.settings.rewardPrice = 20000; }
+        if (!data.knownItems) data.knownItems = {};
+        if (data.history) {
+            data.history = data.history.map(h => {
+                if (h.trx) h.trx = migrateTrx(h.trx);
+                if (h.kasbon === undefined) h.kasbon = [];
+                if (h.totalKasbon === undefined) h.totalKasbon = 0;
+                if (h.gajiBersih === undefined) h.gajiBersih = h.totalGaji;
+                return h;
+            });
+        }
+        return data;
+    }
+
+    function loadData() { const d = localStorage.getItem('gajiBoronganData'); if (d) appData = migrateData(JSON.parse(d)); updateKnownItems(); applyTheme(appData.settings.theme); }
+    function saveData() { localStorage.setItem('gajiBoronganData', JSON.stringify(appData)); updateKnownItems(); }
+
+    // --- XP & PANGKAT ---
+    function getPangkat(tk) {
+        if(tk < 500) return { nama: 'Kuli Amatir 🥉', next: 500 };
+        if(tk < 2000) return { nama: 'Spesialis Karung 🥈', next: 2000 };
+        if(tk < 5000) return { nama: 'Jagoan Borongan 🥇', next: 5000 };
+        if(tk < 15000) return { nama: 'Mandor Bayangan 👑', next: 15000 };
+        return { nama: 'Sultan Karung 💎', next: tk };
+    }
+    function renderPangkat() {
+        let totalLife = 0;
+        appData.history.forEach(h => totalLife += h.totalKarung);
+        appData.transactions.forEach(t => totalLife += t.totalKarung);
+        const rank = getPangkat(totalLife);
+        document.getElementById('pangkat-badge').innerText = `${rank.nama} (${formatNum(totalLife)} Karung)`;
+        document.getElementById('xp-bar').style.width = Math.min(rank.next === totalLife ? 100 : (totalLife / rank.next) * 100, 100) + '%';
+    }
+
+    // --- MODE LEMBUR ---
+    function toggleLembur() {
+        isModeLembur = !isModeLembur;
+        const btn = document.getElementById('btn-lembur');
+        if(isModeLembur) {
+            btn.innerText = "🔥 LEMBUR AKTIF"; btn.style.background = "var(--danger)"; btn.style.color = "#fff";
+            document.body.classList.add('lembur-mode'); document.getElementById('card-utama').style.borderColor = "var(--danger)";
+            showToast("Mode Lembur AKTIF! Target dinaikkan, Pantang Kasbon! 🔥");
+        } else {
+            btn.innerText = "🔥 Mode Lembur"; btn.style.background = "transparent"; btn.style.color = "var(--danger)";
+            document.body.classList.remove('lembur-mode'); document.getElementById('card-utama').style.borderColor = "var(--primary)";
+            showToast("Mode Lembur Dimatikan.");
+        } updateUI('home');
+    }
+
+    // --- CONFETTI ---
+    function fireMoneyConfetti() {
+        const emojis = ['💸', '💰', '💴', '💵', '🎉'];
+        for (let i = 0; i < 40; i++) {
+            let el = document.createElement('div'); el.className = 'confetti'; el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            el.style.left = Math.random() * 100 + 'vw'; el.style.top = '-20px'; el.style.fontSize = (Math.random() * 20 + 15) + 'px'; el.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            document.body.appendChild(el); setTimeout(() => el.remove(), 4000);
+        }
+    }
+
+    // --- AUTO-FILL HARGA & SALIN ---
+    function updateKnownItems() {
+        if(!appData.knownItems) appData.knownItems = {};
+        const scan = (trxList) => { trxList.forEach(t => { t.items.forEach(i => { appData.knownItems[i.jenis] = i.harga; }); }); };
+        appData.history.forEach(h => scan(h.trx)); scan(appData.transactions);
+        document.getElementById('karung-list').innerHTML = Object.keys(appData.knownItems).map(k => `<option value="${k}">`).join('');
+    }
+    function handleJenisChange(inputEl, calcFn) {
+        const val = inputEl.value;
+        if(appData.knownItems[val]) {
+            const row = inputEl.closest('.item-row'); const hargaInput = row.querySelector('.input-harga');
+            if(!hargaInput.value || hargaInput.value == "0" || hargaInput.value == "") { hargaInput.value = appData.knownItems[val]; window[calcFn](); }
+        }
+    }
+    function salinKemarin() {
+        const tglInput = document.getElementById('catat-tanggal').value; if(!tglInput) return showToast("Pilih tanggal hari ini dulu!", true);
+        const yStr = (new Date(new Date(tglInput).setDate(new Date(tglInput).getDate()-1))).toISOString().split('T')[0];
+        const trxs = appData.transactions.filter(t => t.tgl === yStr);
+        if(trxs.length === 0) return showToast("Tidak ada data kerja kemarin!", true);
+        document.getElementById('catat-items').innerHTML = '';
+        trxs.forEach(t => { t.items.forEach(i => addCatatItem('catat-items', 'autoHitungCatat', i.jenis, i.harga, i.jumlah)); });
+        document.getElementById('catat-catatan').value = trxs.map(t=>t.catatan).filter(c=>c).join(' | '); autoHitungCatat(); showToast("Disalin dari kemarin!");
+    }
+
+    // --- THEME & UTILS ---
+    function toggleTheme() { appData.settings.theme = appData.settings.theme === 'dark' ? 'light' : 'dark'; applyTheme(appData.settings.theme); saveData(); }
+    function applyTheme(theme) {
+        const body = document.getElementById('app-body'); const icon = document.getElementById('theme-toggle'); const btnSetting = document.getElementById('btn-theme-setting');
+        if (theme === 'light') { body.classList.add('light-mode'); if(icon) icon.innerText = '☀️'; if(btnSetting) btnSetting.innerText = 'Ubah ke Gelap'; } 
+        else { body.classList.remove('light-mode'); if(icon) icon.innerText = '🌙'; if(btnSetting) btnSetting.innerText = 'Ubah ke Terang'; }
+    }
+    const formatRp = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+    const formatNum = (num) => new Intl.NumberFormat('id-ID').format(num);
+    const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+    const getTodayStr = () => { const tz = (new Date()).getTimezoneOffset() * 60000; return (new Date(Date.now() - tz)).toISOString().split('T')[0]; };
+    function showToast(msg, isError=false) { const t = document.getElementById('toast'); t.innerText = msg; t.style.background = isError ? 'var(--danger)' : 'var(--primary)'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+
+    function getCurrentPeriodObj(dateStr = getTodayStr()) {
+        const d = new Date(dateStr); let y = d.getFullYear(), m = d.getMonth(), day = d.getDate();
+        let startM = m, startY = y, endM = m, endY = y;
+        if (day >= 26) { endM = m + 1; if (endM > 11) { endM = 0; endY++; } } else { startM = m - 1; if (startM < 0) { startM = 11; startY--; } }
+        const mNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+        return { str: `26 ${mNames[startM]} ${startY} - 25 ${mNames[endM]} ${endY}`, startDate: new Date(startY, startM, 26), endDate: new Date(endY, endM, 25, 23, 59, 59) };
+    }
+
+    function hitungAlokasi(gajiBersih) {
+        let rules, msg;
+        if (gajiBersih <= 3000000) { rules = { kebutuhan: 55, tabungan: 20, jalan: 5, ortu: 15, darurat: 5 }; msg="Gaji masih kecil, utamakan kebutuhan pokok. Tabungan darurat wajib dijaga."; }
+        else if (gajiBersih <= 5000000) { rules = { kebutuhan: 45, tabungan: 30, jalan: 10, ortu: 10, darurat: 5 }; msg="Gaji seimbang. Kebutuhan aman, perbesar porsi tabungan."; }
+        else { rules = { kebutuhan: 35, tabungan: 40, jalan: 10, ortu: 10, darurat: 5 }; msg="Penghasilan mantap! Amankan kelebihan untuk investasi & masa depan."; }
+        return { 
+            keterangan: msg,
+            detail: [
+                { nama: 'Kebutuhan', persen: rules.kebutuhan, nilai: gajiBersih * (rules.kebutuhan/100) },
+                { nama: 'Tabungan', persen: rules.tabungan, nilai: gajiBersih * (rules.tabungan/100) },
+                { nama: 'Orang Tua', persen: rules.ortu, nilai: gajiBersih * (rules.ortu/100) },
+                { nama: 'Jalan-jalan', persen: rules.jalan, nilai: gajiBersih * (rules.jalan/100) },
+                { nama: 'Dana Darurat', persen: rules.darurat, nilai: gajiBersih * (rules.darurat/100) }
+            ]
+        };
+    }
+
+    // --- SHARE WA ---
+    function shareWAHariIni() {
+        const today = getTodayStr(); const trxs = appData.transactions.filter(t => t.tgl === today); const kasbs = appData.kasbon.filter(k => k.tgl === today);
+        if(trxs.length === 0 && kasbs.length === 0) return showToast("Belum ada catatan untuk hari ini!", true);
+        let text = `*Laporan Kerja Hari Ini (${today.split('-').reverse().join('/')})*\nNama: ${appData.settings.nama || '-'}\n\n`;
+        let tKotor = 0, tKasbon = 0;
+        if (trxs.length > 0) { text += `*HASIL KARUNG:*\n`; trxs.forEach(t => { t.items.forEach(i => { text += `- ${i.jenis} (${i.jumlah}) = ${formatRp(i.jumlah * i.harga)}\n`; }); tKotor += t.totalUang; }); text += `*Total Pendapatan: ${formatRp(tKotor)}*\n\n`; }
+        if (kasbs.length > 0) { text += `*KASBON:*\n`; kasbs.forEach(k => { text += `- ${formatRp(k.jumlah)} (${k.catatan})\n`; tKasbon += k.jumlah; }); text += `*Total Kasbon: ${formatRp(tKasbon)}*\n\n`; }
+        text += `*SISA BERSIH HARI INI:* ${formatRp(tKotor - tKasbon)}`; window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+    }
+    function shareWARiwayat(id) {
+        const h = appData.history.find(x => x.id === id); if(!h) return;
+        let text = `*Rekap Gaji Borongan*\nNama: ${appData.settings.nama || '-'}\nPeriode: ${h.periodeStr}\n\n- Total Karung: ${formatNum(h.totalKarung)} Pcs\n- Total Gaji Kotor: ${formatRp(h.totalGaji)}\n- Total Kasbon: ${formatRp(h.totalKasbon)}\n\n*GAJI BERSIH DITERIMA: ${formatRp(h.gajiBersih)}*`; window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+    }
+
+    function filterRiwayat() { const q = document.getElementById('search-riwayat').value.toLowerCase(); document.querySelectorAll('.history-item').forEach(el => { el.style.display = el.innerText.toLowerCase().includes(q) ? 'block' : 'none'; }); }
+
+    // --- NAV & UI ---
+    function switchView(viewId, el) {
+        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); if(el) el.classList.add('active');
+        updateUI(viewId);
+    }
+    
+    function switchCatatTab(tab) {
+        if (tab === 'kasbon' && isModeLembur) return showToast("Eits, pantang kasbon saat Mode Lembur! 🔥", true);
+        document.getElementById('tab-hasil').className = tab === 'hasil' ? 'tab-btn active' : 'tab-btn';
+        document.getElementById('tab-kasbon').className = tab === 'kasbon' ? 'tab-btn active-danger' : 'tab-btn';
+        document.getElementById('tab-simulasi').className = tab === 'simulasi' ? 'tab-btn active-warning' : 'tab-btn';
+        document.getElementById('form-container-hasil').style.display = tab === 'hasil' ? 'block' : 'none';
+        document.getElementById('form-container-kasbon').style.display = tab === 'kasbon' ? 'block' : 'none';
+        document.getElementById('form-container-simulasi').style.display = tab === 'simulasi' ? 'block' : 'none';
+        const showTrx = tab !== 'simulasi'; document.getElementById('tabel-transaksi-berjalan').style.display = showTrx ? 'block' : 'none'; document.getElementById('judul-transaksi-berjalan').style.display = showTrx ? 'block' : 'none';
+    }
+
+    function updateUI(view) {
+        if (!view) return; const curPeriod = getCurrentPeriodObj(); let kotor = 0, totalKarung = 0, hariUang = 0, hariKarung = 0, totalKasbon = 0; const hariIniStr = getTodayStr();
+        appData.transactions.forEach(t => { kotor += t.totalUang; totalKarung += t.totalKarung; if(t.tgl === hariIniStr) { hariUang += t.totalUang; hariKarung += t.totalKarung; } });
+        appData.kasbon.forEach(k => { totalKasbon += k.jumlah; }); const bersih = kotor - totalKasbon;
+
+        if (view === 'home') {
+            document.getElementById('display-name').innerText = appData.settings.nama || 'Pekerja'; document.getElementById('home-periode').innerText = curPeriod.str;
+            renderPangkat(); 
+            document.getElementById('home-bersih').innerText = formatRp(bersih); document.getElementById('home-kotor').innerText = formatRp(kotor); document.getElementById('home-kasbon').innerText = formatRp(totalKasbon);
+            document.getElementById('home-hari-uang').innerText = formatRp(hariUang); document.getElementById('home-hari-karung').innerText = formatNum(hariKarung);
+
+            if(hariUang > 0 && appData.settings.rewardPrice > 0) {
+                const qty = (hariUang / appData.settings.rewardPrice).toFixed(1);
+                document.getElementById('reward-card').style.display = 'block'; document.getElementById('reward-text').innerText = `${qty}x ${appData.settings.rewardName}`;
+            } else { document.getElementById('reward-card').style.display = 'none'; }
+
+            let target = appData.settings.target || 0; if(isModeLembur) target *= 2; 
+            let percent = target > 0 ? Math.min((bersih / target) * 100, 100) : 0;
+            document.getElementById('target-progress-bar').style.width = percent + '%'; document.getElementById('target-progress-text').innerText = Math.round(percent) + '%';
+            document.getElementById('target-amount-text').innerText = 'Target: ' + formatRp(target);
+            const sts = document.getElementById('target-status');
+            if (bersih >= target && target > 0) { sts.innerText = "Target tercapai 🎉"; sts.className = "text-primary"; } else { sts.innerText = `Masih kurang ${formatRp(target - bersih)}`; sts.className = "text-muted"; }
+
+            const pacerEl = document.getElementById('target-pacer-text');
+            if (target > 0 && (target - bersih) > 0) {
+                const diffDays = Math.max(1, Math.ceil((new Date(curPeriod.endDate.getFullYear(), curPeriod.endDate.getMonth(), curPeriod.endDate.getDate()) - new Date(new Date(hariIniStr).getFullYear(), new Date(hariIniStr).getMonth(), new Date(hariIniStr).getDate())) / (1000 * 60 * 60 * 24)));
+                pacerEl.innerHTML = `💡 Kejar target: Butuh <strong>${formatRp((target - bersih) / diffDays)}/hari</strong> di ${diffDays} hari sisa.`; pacerEl.style.display = 'block';
+            } else pacerEl.style.display = 'none';
+
+            const hariKerja = Object.keys(appData.transactions.reduce((acc, t) => {acc[t.tgl]=true; return acc;}, {})).length; 
+            const rataHarian = hariKerja > 0 ? bersih / hariKerja : 0; const estimasi = rataHarian * 30;
+            document.getElementById('home-rata-harian').innerText = formatRp(rataHarian); document.getElementById('home-estimasi').innerText = formatRp(estimasi);
+
+            let trendHtml = '';
+            if (appData.history.length > 0 && appData.history[0].gajiBersih > 0) {
+                const pct = ((estimasi - appData.history[0].gajiBersih) / appData.history[0].gajiBersih) * 100;
+                if (pct > 0) trendHtml = `<span style="color:var(--primary); font-weight:bold;">🔥 Naik ${pct.toFixed(1)}%</span> vs bulan lalu`;
+                else if (pct < 0) trendHtml = `<span style="color:var(--danger); font-weight:bold;">📉 Turun ${Math.abs(pct).toFixed(1)}%</span> vs bulan lalu`;
+                else trendHtml = `<span style="color:var(--text-muted); font-weight:bold;">⚖️ Sama</span> dengan bulan lalu`;
+            } document.getElementById('trend-indicator').innerHTML = trendHtml;
+
+            // KEMBALIKAN: Simulasi Alokasi Home
+            const simCont = document.getElementById('card-simulasi-alokasi');
+            if (bersih > 0) {
+                simCont.style.display = 'block'; const sim = hitungAlokasi(bersih);
+                document.getElementById('simulasi-alokasi-pesan').innerText = `"${sim.keterangan}"`;
+                document.getElementById('simulasi-alokasi-list').innerHTML = sim.detail.map(d => `<div class="flex-between mb-1" style="border-bottom:1px dashed var(--border); padding-bottom:6px;"><span>${d.nama} <span class="text-muted">(${d.persen}%)</span></span><strong style="color:var(--text-main);">${formatRp(d.nilai)}</strong></div>`).join('');
+            } else { simCont.style.display = 'none'; }
+            
+            // KEMBALIKAN: History Alokasi Home
+            const alokasiCont = document.getElementById('saran-alokasi-container');
+            if (appData.lastAlokasi && appData.lastAlokasi.detail) {
+                alokasiCont.style.display = 'block';
+                document.getElementById('saran-alokasi-list').innerHTML = appData.lastAlokasi.detail.map(d => `<div class="flex-between mb-1" style="font-size:0.85em;"><span>${d.nama} (${d.persen}%)</span><strong>${formatRp(d.nilai)}</strong></div>`).join('');
+            } else { alokasiCont.style.display = 'none'; }
+
+        } else if (view === 'catat') {
+            document.getElementById('catat-tanggal').value = hariIniStr; document.getElementById('kasbon-tanggal').value = hariIniStr;
+            document.getElementById('catat-items').innerHTML = ''; addCatatItem('catat-items', 'autoHitungCatat'); document.getElementById('catat-hasil-otomatis').innerText = 'Rp0'; 
+            if(document.getElementById('simulasi-items').innerHTML.trim() === '') addCatatItem('simulasi-items', 'autoHitungSimulasi');
+            renderTabelGabungan();
+        } else if (view === 'hasil') {
+            document.getElementById('hasil-periode').innerText = curPeriod.str; 
+            
+            // KEMBALIKAN: Rekap Transaksi
+            document.getElementById('hasil-uang').innerText = formatRp(kotor); 
+            document.getElementById('hasil-kasbon').innerText = formatRp(totalKasbon); 
+            document.getElementById('hasil-bersih').innerText = formatRp(bersih);
+            
+            // KEMBALIKAN: Karung Andalan Stats
+            const map = {};
+            appData.transactions.forEach(t => { t.items.forEach(i => { if(!map[i.jenis]) map[i.jenis] = {jml:0, uang:0}; map[i.jenis].jml += i.jumlah; map[i.jenis].uang += (i.jumlah * i.harga); }); });
+            let topUang = {n:'-', v:0}, topKarung = {n:'-', v:0};
+            for(const k in map) { if(map[k].uang > topUang.v) { topUang.v = map[k].uang; topUang.n = k; } if(map[k].jml > topKarung.v) { topKarung.v = map[k].jml; topKarung.n = k; } }
+            document.getElementById('top-uang-nama').innerText = topUang.n; document.getElementById('top-uang-nilai').innerText = formatRp(topUang.v);
+            document.getElementById('top-karung-nama').innerText = topKarung.n; document.getElementById('top-karung-nilai').innerText = formatNum(topKarung.v) + " Pcs";
+
+            renderKalenderStreak(curPeriod);
+            const daily = {}; appData.transactions.forEach(t => { if(!daily[t.tgl]) daily[t.tgl] = 0; daily[t.tgl] += t.totalUang; });
+            const dates = Object.keys(daily).sort((a,b) => new Date(a) - new Date(b)); const maxVal = Math.max(...Object.values(daily), 10000);
+            document.getElementById('chart-harian').innerHTML = dates.map(d => `<div class="chart-bar-container"><div class="chart-bar" style="height: ${Math.round((daily[d] / maxVal) * 100)}%;" data-val="${formatNum(daily[d])}"></div><div class="chart-label">${d.split('-')[2]}/${d.split('-')[1]}</div></div>`).join('') || '<div class="text-muted" style="width:100%; text-align:center; padding-top:50px;">Belum ada data</div>';
+        } else if (view === 'riwayat') { 
+            document.getElementById('search-riwayat').value = ''; const cont = document.getElementById('riwayat-list');
+            cont.innerHTML = appData.history.length === 0 ? '<p class="text-center text-muted">Belum ada riwayat.</p>' : [...appData.history].sort((a,b) => b.id - a.id).map(h => `<div class="card history-item"><div class="card-header">${h.periodeStr}</div><div class="flex-between mt-1 mb-2"><div><div class="text-muted">Gaji Bersih</div><div class="text-primary" style="font-weight:bold; font-size:1.1em;">${formatRp(h.gajiBersih)}</div></div><div class="text-right"><div class="text-muted">Karung</div><div style="font-weight:bold; font-size:1.1em;">${formatNum(h.totalKarung)}</div></div></div><div class="grid-2 mt-1"><button class="btn btn-primary btn-sm" onclick="openDetailRiwayat(${h.id})" style="grid-column: span 2;">🔍 Buka Detail Lengkap</button><button class="btn btn-outline btn-sm" onclick="shareWARiwayat(${h.id})" style="border:1px solid #25D366; color:#25D366;">📲 Share WA</button><button class="btn btn-outline btn-sm" onclick="downloadCSV(${h.id})">Export Excel</button><button class="btn btn-secondary btn-sm" onclick="cetakStruk(${h.id})">🖨️ Struk</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteRiwayat(${h.id})">Hapus Riwayat</button></div></div>`).join('');
+        } else if (view === 'setting') {
+            document.getElementById('set-nama').value = appData.settings.nama || ''; document.getElementById('set-target').value = appData.settings.target || '';
+            document.getElementById('set-reward-name').value = appData.settings.rewardName || ''; document.getElementById('set-reward-price').value = appData.settings.rewardPrice || '';
+            applyRewardPreset(true); 
+        }
+    }
+
+    function renderKalenderStreak(curPeriod) {
+        let calHTML = ''; let curr = new Date(curPeriod.startDate); const end = curPeriod.endDate; const todayStr = getTodayStr();
+        while (curr <= end) {
+            const tz = curr.getTimezoneOffset() * 60000; const dStr = (new Date(curr - tz)).toISOString().split('T')[0];
+            const hasKerja = appData.transactions.some(t => t.tgl === dStr); const hasKasbon = appData.kasbon.some(k => k.tgl === dStr);
+            let cssClass = 'cal-day'; let dot = '';
+            if (dStr > todayStr) cssClass += ' future'; else if (hasKerja && hasKasbon) { cssClass += ' worked'; dot = '<div class="dot"></div>'; } else if (hasKerja) cssClass += ' worked'; else if (hasKasbon) cssClass += ' kasbon-only';
+            calHTML += `<div class="${cssClass}">${curr.getDate()}${dot}</div>`; curr.setDate(curr.getDate() + 1);
+        } document.getElementById('streak-calendar').innerHTML = calHTML;
+    }
+
+    // --- FORM CATAT LOGIC ---
+    function createItemRowHTML(calcFn, jenis='', harga='', jumlah='') {
+        return `<div class="item-row mb-1" style="background: var(--bg-color); border: 1px dashed var(--border); border-radius:8px; padding: 12px;"><button type="button" class="btn-remove-item" onclick="removeItemRow(this, '${calcFn}')">X</button><div class="form-group" style="margin-bottom:10px;"><label style="font-size:0.8em;">Jenis Karung</label><input type="text" class="input-jenis" value="${jenis}" list="karung-list" oninput="handleJenisChange(this, '${calcFn}')" placeholder="Contoh: Jumbo A" required style="padding:10px;"></div><div class="grid-2" style="gap:10px;"><div class="form-group" style="margin-bottom:0;"><label style="font-size:0.8em;">Harga/Karung</label><input type="number" class="input-harga" value="${harga}" min="1" required oninput="${calcFn}()" style="padding:10px;"></div><div class="form-group" style="margin-bottom:0;"><label style="font-size:0.8em;">Jumlah</label><input type="number" class="input-jumlah" value="${jumlah}" min="1" required oninput="${calcFn}()" style="padding:10px;"></div></div></div>`;
+    }
+    function addCatatItem(containerId, calcFn, j='', h='', jml='') { document.getElementById(containerId).insertAdjacentHTML('beforeend', createItemRowHTML(calcFn, j, h, jml)); }
+    function removeItemRow(btn, calcFn) { const row = btn.closest('.item-row'); if(row.parentElement.querySelectorAll('.item-row').length > 1) { row.remove(); window[calcFn](); } else showToast("Minimal 1 karung!", true); }
+    
+    function autoHitungCatat() { let t = 0; document.querySelectorAll('#catat-items .item-row').forEach(row => { t += (parseInt(row.querySelector('.input-harga').value)||0) * (parseInt(row.querySelector('.input-jumlah').value)||0); }); document.getElementById('catat-hasil-otomatis').innerText = formatRp(t); }
+    function autoHitungSimulasi() { let t = 0; document.querySelectorAll('#simulasi-items .item-row').forEach(row => { t += (parseInt(row.querySelector('.input-harga').value)||0) * (parseInt(row.querySelector('.input-jumlah').value)||0); }); document.getElementById('simulasi-hasil-otomatis').innerText = formatRp(t); }
+    function resetSimulasi() { document.getElementById('simulasi-items').innerHTML = ''; addCatatItem('simulasi-items', 'autoHitungSimulasi'); document.getElementById('simulasi-hasil-otomatis').innerText = 'Rp0'; }
+
+    document.getElementById('form-catat').addEventListener('submit', function(e) {
+        e.preventDefault(); const tgl = document.getElementById('catat-tanggal').value; const ctt = document.getElementById('catat-catatan').value;
+        const items = []; let tK = 0, tU = 0;
+        for (let row of document.querySelectorAll('#catat-items .item-row')) {
+            const jns = row.querySelector('.input-jenis').value, hrg = parseInt(row.querySelector('.input-harga').value), jml = parseInt(row.querySelector('.input-jumlah').value);
+            if (!jns || hrg <= 0 || jml <= 0) return showToast("Form tidak lengkap!", true);
+            items.push({ jenis: jns, harga: hrg, jumlah: jml }); tK += jml; tU += (hrg * jml);
+        }
+        appData.transactions.push({ id: generateId(), tgl, catatan: ctt, items, totalKarung: tK, totalUang: tU }); appData.transactions.sort((a,b) => new Date(b.tgl) - new Date(a.tgl)); saveData(); 
+        let pesanMandor = "Hasil tersimpan!";
+        if (tU > 150000) pesanMandor = "Gacor parah! Udah bisa checkout keranjang nih 🛒🔥";
+        else if (tU < 50000) pesanMandor = "Cuma segini? Kurangin ngopinya, banyakin kerjanya! ☕🏃";
+        showToast(pesanMandor); updateUI('catat'); document.getElementById('catat-catatan').value='';
+    });
+
+    document.getElementById('form-kasbon').addEventListener('submit', function(e) {
+        e.preventDefault(); const tgl = document.getElementById('kasbon-tanggal').value, jml = parseInt(document.getElementById('kasbon-jumlah').value), ctt = document.getElementById('kasbon-catatan').value;
+        if(jml <= 0) return showToast("Jumlah tidak valid", true);
+        appData.kasbon.push({ id: generateId(), tgl, jumlah: jml, catatan: ctt }); appData.kasbon.sort((a,b) => new Date(b.tgl) - new Date(a.tgl)); saveData(); 
+        showToast("Kasbon teroos, kapan kayanya bos? 🗿", true); updateUI('catat'); document.getElementById('kasbon-jumlah').value=''; document.getElementById('kasbon-catatan').value='';
+    });
+
+    function renderTabelGabungan() {
+        const tbody = document.getElementById('table-transaksi').querySelector('tbody');
+        let gabung = [...appData.transactions.map(t => ({...t, tipe:'hasil'})), ...appData.kasbon.map(k => ({...k, tipe:'kasbon'}))].sort((a,b) => new Date(b.tgl) - new Date(a.tgl));
+        tbody.innerHTML = gabung.map(d => {
+            const ds = d.tgl.split('-'); const dShow = `${ds[2]}/${ds[1]}`;
+            if(d.tipe === 'hasil') return `<tr><td>${dShow}</td><td style="font-size:0.85em;">${d.items.map(i => `<div><span class="text-muted">${i.jenis}</span> <b>(${i.jumlah})</b></div>`).join('')}</td><td class="text-primary"><b>+${formatRp(d.totalUang)}</b></td><td><button class="btn btn-sm btn-secondary" onclick="openEdit('${d.id}')">Edit</button> <button class="btn btn-sm btn-danger" style="margin-top:5px;" onclick="confirmDelete('${d.id}', 'hasil')">Hapus</button></td></tr>`;
+            else return `<tr><td>${dShow}</td><td style="font-size:0.85em;">Kasbon:<br><i>${d.catatan}</i></td><td class="text-danger"><b>-${formatRp(d.jumlah)}</b></td><td><button class="btn btn-sm btn-danger" onclick="confirmDelete('${d.id}', 'kasbon')">Hapus</button></td></tr>`;
+        }).join('') || '<tr><td colspan="4" class="text-center text-muted">Belum ada aktivitas</td></tr>';
+    }
+
+    let deleteId = null, deleteType = null;
+    function confirmDelete(id, type) { deleteId = id; deleteType = type; document.getElementById('confirm-title').innerText = "Hapus Data"; document.getElementById('confirm-msg').innerText = "Yakin ingin menghapus catatan ini?"; document.getElementById('confirm-extra').style.display = "none"; const btn = document.getElementById('confirm-btn'); btn.innerText = "Hapus"; btn.className = "btn btn-danger"; btn.onclick = () => { if(deleteType === 'hasil') appData.transactions = appData.transactions.filter(x => x.id !== deleteId); else appData.kasbon = appData.kasbon.filter(x => x.id !== deleteId); saveData(); closeModal('modal-confirm'); updateUI('catat'); showToast("Berhasil dihapus"); }; document.getElementById('modal-confirm').classList.add('active'); }
+
+    function openEdit(id) {
+        const t = appData.transactions.find(x => x.id === id); if(!t) return;
+        document.getElementById('edit-id').value = t.id; document.getElementById('edit-tanggal').value = t.tgl; document.getElementById('edit-catatan').value = t.catatan || ''; document.getElementById('edit-items').innerHTML = '';
+        t.items.forEach(i => addCatatItem('edit-items', 'autoHitungEdit', i.jenis, i.harga, i.jumlah)); autoHitungEdit(); document.getElementById('modal-edit').classList.add('active');
+    }
+    function autoHitungEdit() { let t = 0; document.querySelectorAll('#edit-items .item-row').forEach(row => { t += (parseInt(row.querySelector('.input-harga').value)||0) * (parseInt(row.querySelector('.input-jumlah').value)||0); }); document.getElementById('edit-total').innerText = formatRp(t); }
+    document.getElementById('form-edit').addEventListener('submit', function(e) {
+        e.preventDefault(); const id = document.getElementById('edit-id').value; const idx = appData.transactions.findIndex(x => x.id === id);
+        if(idx > -1) {
+            const items = []; let tK = 0, tU = 0;
+            for (let row of document.querySelectorAll('#edit-items .item-row')) {
+                const jns = row.querySelector('.input-jenis').value, hrg = parseInt(row.querySelector('.input-harga').value), jml = parseInt(row.querySelector('.input-jumlah').value);
+                items.push({ jenis: jns, harga: hrg, jumlah: jml }); tK += jml; tU += (hrg * jml);
+            }
+            appData.transactions[idx] = { id, tgl: document.getElementById('edit-tanggal').value, catatan: document.getElementById('edit-catatan').value, items, totalKarung: tK, totalUang: tU }; appData.transactions.sort((a,b) => new Date(b.tgl) - new Date(a.tgl)); saveData(); closeModal('modal-edit'); updateUI('catat'); showToast("Perubahan disimpan");
+        }
+    });
+
+    // --- KEMBALIKAN FITUR: BUKA DETAIL RIWAYAT MODAL ---
+    function openDetailRiwayat(id) {
+        const h = appData.history.find(x => x.id === id); if(!h) return;
+        document.getElementById('det-periode').innerText = h.periodeStr;
+        document.getElementById('det-gaji').innerText = formatRp(h.gajiBersih);
+        document.getElementById('det-karung').innerText = formatNum(h.totalKarung);
+        
+        let alok = '';
+        if(h.alokasi && h.alokasi.detail) {
+            h.alokasi.detail.forEach(d => { alok += `<div class="flex-between" style="margin-bottom:5px;"><span>${d.nama} (${d.persen}%)</span><strong>${formatRp(d.nilai)}</strong></div>`; });
+        }
+        document.getElementById('det-alokasi').innerHTML = alok || '<span class="text-muted">Data alokasi tidak tersedia</span>';
+
+        let gabung = [...(h.trx||[]).map(t=>({...t,tipe:'hasil'})), ...(h.kasbon||[]).map(k=>({...k,tipe:'kasbon'}))].sort((a,b)=>new Date(b.tgl)-new Date(a.tgl));
+        document.getElementById('table-det-hari').querySelector('tbody').innerHTML = gabung.map(d => {
+            const ds = d.tgl.split('-'); const dShow = `${ds[2]}/${ds[1]}/${ds[0]}`;
+            if(d.tipe === 'hasil') return `<tr><td>${dShow}</td><td>${d.items.map(i=>`${i.jenis}(${i.jumlah})`).join('<br>')}</td><td class="text-primary">+${formatRp(d.totalUang)}</td></tr>`;
+            else return `<tr><td>${dShow}</td><td style="color:red;">Kasbon: ${d.catatan}</td><td class="text-danger">-${formatRp(d.jumlah)}</td></tr>`;
+        }).join('') || '<tr><td colspan="3" class="text-center">Data kosong</td></tr>';
+        
+        document.getElementById('modal-riwayat').classList.add('active');
+    }
+
+    // --- RIWAYAT UTILS ---
+    function confirmDeleteRiwayat(id) { deleteId = id; document.getElementById('confirm-title').innerText = "Hapus Riwayat"; document.getElementById('confirm-msg').innerText = "Data permanen. Yakin?"; document.getElementById('confirm-extra').style.display = "none"; const btn = document.getElementById('confirm-btn'); btn.innerText = "Hapus"; btn.className = "btn btn-danger"; btn.onclick = () => { appData.history = appData.history.filter(x => x.id !== deleteId); saveData(); closeModal('modal-confirm'); updateUI('riwayat'); showToast("Dihapus"); }; document.getElementById('modal-confirm').classList.add('active'); }
+    function downloadCSV(histId) {
+        const h = appData.history.find(x => x.id === histId); if(!h) return; let csv = "Tanggal,Tipe,Keterangan,Pemasukan (Kotor),Pengeluaran (Kasbon)\n";
+        let arr = [...(h.trx||[]).map(t => ({...t, type:'Hasil', ket: t.items.map(i=>`${i.jenis}(${i.jumlah})`).join(' | '), msk:t.totalUang, klr:0})), ...(h.kasbon||[]).map(k => ({...k, type:'Kasbon', ket: k.catatan, msk:0, klr:k.jumlah}))].sort((a,b) => new Date(a.tgl) - new Date(b.tgl));
+        arr.forEach(a => { csv += `${a.tgl},${a.type},${a.ket},${a.msk},${a.klr}\n`; }); csv += `\nTOTAL KOTOR,,,${h.totalGaji},0\nTOTAL KASBON,,,,${h.totalKasbon}\nGAJI BERSIH,,,${h.gajiBersih},0\n`;
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `Laporan_Gaji_${h.periodeStr.replace(/ /g,'_')}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+    function cetakStruk(histId) {
+        const h = appData.history.find(x => x.id === histId); if(!h) return; const pa = document.getElementById('print-area');
+        pa.innerHTML = `<div style="font-family:monospace; max-width:300px; margin:0 auto; color:black;"><h3 style="text-align:center; margin-bottom:5px;">STRUK GAJI BORONGAN</h3><div style="text-align:center; font-size:12px; margin-bottom:15px; border-bottom:2px dashed #000; padding-bottom:10px;">Periode: ${h.periodeStr}</div><strong>HASIL KERJA</strong>${(h.trx||[]).map(t => `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #ccc; padding:5px 0; font-size:12px;"><div style="flex:2;">${t.tgl}<br><span style="color:#555;">${t.items.map(i=>i.jenis+' ('+i.jumlah+')').join(', ')}</span></div><div style="flex:1; text-align:right; font-weight:bold;">${formatRp(t.totalUang)}</div></div>`).join('') || '<div style="font-size:12px;">- Kosong</div>'}<br><strong>KASBON</strong>${(h.kasbon||[]).map(k => `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #ccc; padding:5px 0; font-size:12px; color:red;"><div style="flex:2;">${k.tgl}<br><span style="color:#555;">${k.catatan}</span></div><div style="flex:1; text-align:right;">-${formatRp(k.jumlah)}</div></div>`).join('') || '<div style="font-size:12px;">- Tidak ada kasbon</div>'}<div style="border-top:2px dashed #000; margin-top:15px; padding-top:10px;"><div style="display:flex; justify-content:space-between;"><span>TOTAL KOTOR</span> <span>${formatRp(h.totalGaji)}</span></div><div style="display:flex; justify-content:space-between; color:red;"><span>KASBON</span> <span>-${formatRp(h.totalKasbon)}</span></div><div style="display:flex; justify-content:space-between; font-weight:bold; font-size:16px; margin-top:5px;"><span>BERSIH</span> <span>${formatRp(h.gajiBersih)}</span></div></div><div style="text-align:center; margin-top:20px; font-size:10px;">Dicetak: ${getTodayStr()}</div></div>`;
+        pa.style.display = 'block'; window.print(); pa.style.display = 'none';
+    }
+
+    // --- TUTUP BUKU & GAJIAN ---
+    function openTutupBukuModal() {
+        if(appData.transactions.length === 0) return showToast("Belum ada data di periode ini.", true);
+        let tk = 0, kotor = 0, totalKas = 0; appData.transactions.forEach(t => { kotor += t.totalUang; tk += t.totalKarung; }); appData.kasbon.forEach(k => { totalKas += k.jumlah; });
+        const bersih = kotor - totalKas; const pObj = getCurrentPeriodObj(appData.transactions[appData.transactions.length-1].tgl);
+        document.getElementById('confirm-title').innerText = "Tutup Buku Periode Ini?"; document.getElementById('confirm-msg').innerText = "Data berjalan akan dipindah ke Riwayat.";
+        const extra = document.getElementById('confirm-extra'); extra.style.display = "block"; extra.innerHTML = `<strong>Periode:</strong> ${pObj.str}<br><strong>Gaji Bersih:</strong> <span class="text-primary">${formatRp(bersih)}</span><br><strong>Karung:</strong> ${formatNum(tk)}`;
+        const btn = document.getElementById('confirm-btn'); btn.innerText = "Ya, Gajian! 🎉"; btn.className = "btn btn-primary"; 
+        btn.onclick = () => {
+            const alok = hitungAlokasi(bersih);
+            appData.history.push({ id: Date.now(), periodeStr: pObj.str, tglTutup: getTodayStr(), totalGaji: kotor, totalKarung: tk, totalKasbon: totalKas, gajiBersih: bersih, trx: [...appData.transactions], kasbon: [...appData.kasbon], alokasi: alok });
+            appData.transactions = []; appData.kasbon = []; appData.lastAlokasi = alok; saveData(); closeModal('modal-confirm'); showToast("Tutup buku berhasil!"); 
+            switchView('home', document.querySelector('.nav-item')); fireMoneyConfetti();
+        }; document.getElementById('modal-confirm').classList.add('active');
+    }
+
+    // --- REWARDS SETTING ---
+    function applyRewardPreset(init = false) {
+        const select = document.getElementById('set-reward-preset'); const customDiv = document.getElementById('custom-reward-fields');
+        if (select.value === 'custom') { customDiv.style.display = 'grid'; if(!init) { document.getElementById('set-reward-name').value = ''; document.getElementById('set-reward-price').value = ''; } } 
+        else { customDiv.style.display = 'none'; if(!init) { const parts = select.value.split('|'); document.getElementById('set-reward-name').value = parts[0]; document.getElementById('set-reward-price').value = parts[1]; } }
+    }
+
+    // --- SETTING & DATA ---
+    function saveSetting() { appData.settings.nama = document.getElementById('set-nama').value; appData.settings.target = parseInt(document.getElementById('set-target').value) || 0; appData.settings.rewardName = document.getElementById('set-reward-name').value; appData.settings.rewardPrice = parseInt(document.getElementById('set-reward-price').value) || 0; saveData(); showToast("Pengaturan disimpan"); updateUI('home'); }
+    function backupData() { const url = URL.createObjectURL(new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" })); const a = document.createElement('a'); a.href = url; a.download = `backup-gajiborongan-${getTodayStr()}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }
+    function handleRestore(event) { const f = event.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(e) { try { let d = JSON.parse(e.target.result); if(d && d.settings) { appData = migrateData(d); saveData(); showToast("Data direstore!"); switchView('home', document.querySelector('.nav-item')); } else showToast("File tidak valid!", true); } catch(err) { showToast("Gagal membaca file!", true); } }; r.readAsText(f); event.target.value = ''; }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    window.onload = () => { loadData(); updateUI('home'); };
+</script>
+</body>
+</html>
